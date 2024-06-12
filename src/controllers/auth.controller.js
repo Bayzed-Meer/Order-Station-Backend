@@ -45,3 +45,39 @@ exports.signup = async (req, res) => {
     res.status(500).json({ message: "Internal server error" });
   }
 };
+
+exports.signin = async (req, res) => {
+  try {
+    const { email, password } = req.body;
+
+    const [employee, staff, admin] = await Promise.all([
+      Employee.findOne({ email }),
+      Staff.findOne({ email }),
+      Admin.findOne({ email }),
+    ]);
+
+    const user = employee || staff || admin;
+
+    if (!user) return res.status(400).json({ message: "User not found" });
+
+    const passwordMatch = await bcrypt.compare(password, user.password);
+    if (!passwordMatch)
+      return res.status(400).json({ message: "Invalid credentials" });
+
+    const token = jwt.sign(
+      { id: user._id, role: user.role },
+      process.env.JWT_SECRET_KEY,
+      {
+        expiresIn: "1d",
+      }
+    );
+
+    res.status(200).json({
+      message: "user signin successfully",
+      token,
+    });
+  } catch (error) {
+    console.error("Error signing in user:", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
