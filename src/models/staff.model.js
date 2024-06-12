@@ -4,11 +4,6 @@ const bcrypt = require("bcrypt");
 const validator = require("validator");
 
 const staffSchema = new Schema({
-  id: {
-    type: String,
-    required: true,
-    unique: true,
-  },
   username: {
     type: String,
     required: true,

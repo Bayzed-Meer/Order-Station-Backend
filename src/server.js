@@ -6,6 +6,8 @@ const dotenv = require("dotenv");
 
 dotenv.config();
 
+const authRoute = require("./routes/auth.route");
+
 const app = express();
 const PORT = process.env.PORT || 3000;
 
@@ -20,6 +22,7 @@ app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
 // routes
+app.use("/auth", authRoute);
 
 // connect to MongoDB
 mongoose
