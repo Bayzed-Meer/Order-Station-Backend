@@ -1,8 +1,9 @@
 const Employee = require("../models/employee.model");
 const Staff = require("../models/staff.model");
 const Admin = require("../models/admin.model");
-const jwt = require("jsonwebtoken");
 const bcrypt = require("bcrypt");
+const tokenUtils = require("../utils/token.utils");
+const jwt = require("jsonwebtoken");
 
 exports.signup = async (req, res) => {
   try {
@@ -18,11 +19,10 @@ exports.signup = async (req, res) => {
 
     const existingUser = existingEmployee || existingStaff;
 
-    if (existingUser) {
+    if (existingUser)
       return res
         .status(400)
         .json({ message: `User already exists as an ${existingUser.role}` });
-    }
 
     const newUser =
       role === "employee"
@@ -56,20 +56,43 @@ exports.signin = async (req, res) => {
     if (!passwordMatch)
       return res.status(400).json({ message: "Invalid credentials" });
 
-    const token = jwt.sign(
-      { id: user._id, role: user.role },
-      process.env.JWT_SECRET_KEY,
-      {
-        expiresIn: "1d",
-      }
-    );
+    const accessToken = tokenUtils.generateAccessToken(user);
+    const refreshToken = tokenUtils.generateRefreshToken(user);
+
+    res.cookie("refreshToken", refreshToken, {
+      httpOnly: true,
+      secure: true,
+      sameSite: "Strict",
+    });
 
     res.status(200).json({
-      message: "user signin successfully",
-      token,
+      message: "User signed in successfully",
+      accessToken,
     });
   } catch (error) {
     console.error("Error signing in user:", error);
     res.status(500).json({ message: "Internal server error" });
   }
+};
+
+exports.refreshToken = (req, res) => {
+  const refreshToken = req.cookies.refreshToken;
+
+  if (!refreshToken)
+    return res.status(403).json({ message: "Refresh token not provided" });
+
+  jwt.verify(refreshToken, process.env.JWT_REFRESH_SECRET_KEY, (err, user) => {
+    if (err) return res.status(403).json({ message: "Invalid refresh token" });
+
+    const accessToken = tokenUtils.generateAccessToken(user);
+    const refreshToken = tokenUtils.generateRefreshToken(user);
+
+    res.cookie("refreshToken", refreshToken, {
+      httpOnly: true,
+      secure: true,
+      sameSite: "Strict",
+    });
+
+    res.json({ accessToken });
+  });
 };
