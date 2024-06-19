@@ -12,10 +12,12 @@ const verifyAccessToken = (req, res, next) => {
   const token = authHeader.split(" ")[1];
 
   jwt.verify(token, process.env.JWT_ACCESS_SECRET_KEY, (err, user) => {
-    if (err)
-      return res
-        .status(403)
-        .json({ message: "Invalid or expired access token" });
+    if (err) {
+      if (err instanceof jwt.TokenExpiredError)
+        return res.status(401).json({ message: "TokenExpiredError" });
+
+      return res.status(403).json({ message: "Invalid access token" });
+    }
 
     req.user = user;
     next();

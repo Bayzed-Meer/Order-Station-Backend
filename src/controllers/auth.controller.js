@@ -1,6 +1,6 @@
+const Admin = require("../models/admin.model");
 const Employee = require("../models/employee.model");
 const Staff = require("../models/staff.model");
-const Admin = require("../models/admin.model");
 const bcrypt = require("bcrypt");
 const tokenUtils = require("../utils/token.utils");
 const jwt = require("jsonwebtoken");
@@ -67,7 +67,6 @@ exports.signin = async (req, res) => {
 
     res.status(200).json({
       message: "User signed in successfully",
-      role: user.role,
       accessToken,
     });
   } catch (error) {
@@ -84,6 +83,41 @@ exports.signout = (req, res) => {
     expires: new Date(0),
   });
   res.status(200).json({ message: "User signed out successfully" });
+};
+
+exports.resetPassword = async (req, res) => {
+  try {
+    const { email, currentPassword, newPassword } = req.body;
+
+    const { id } = req.user;
+
+    const [existingAdmin, existingEmployee, existingStaff] = await Promise.all([
+      Admin.findOne({ email }),
+      Employee.findOne({ email }),
+      Staff.findOne({ email }),
+    ]);
+
+    const user = existingAdmin || existingEmployee || existingStaff;
+
+    if (!user) return res.status(400).json({ message: "User doesn't exist" });
+
+    if (user.id !== id)
+      return res.status(403).json({ message: "Unauthorized access" });
+
+    const passwordMatch = await bcrypt.compare(currentPassword, user.password);
+
+    if (!passwordMatch)
+      return res.status(400).json({ message: "Current password is incorrect" });
+
+    user.password = newPassword;
+
+    await user.save();
+
+    return res.status(200).json({ message: "Password updated successfully" });
+  } catch (error) {
+    console.error("Error resetting password:", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
 };
 
 exports.refreshToken = (req, res) => {
