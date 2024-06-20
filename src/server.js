@@ -6,6 +6,7 @@ const mongoose = require("mongoose");
 const cookieParser = require("cookie-parser");
 
 const authRoute = require("./routes/auth.route");
+const adminRoute = require("./routes/admin.route");
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -23,6 +24,7 @@ app.use(cookieParser());
 
 // routes
 app.use("/auth", authRoute);
+app.use("/admin", adminRoute);
 
 // connect to MongoDB
 mongoose

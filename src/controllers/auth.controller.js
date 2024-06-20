@@ -7,7 +7,7 @@ const jwt = require("jsonwebtoken");
 
 exports.signup = async (req, res) => {
   try {
-    const { username, email, password, role } = req.body;
+    const { username, id, email, password, role } = req.body;
 
     if (role !== "employee" && role !== "staff")
       return res.status(400).json({ message: "Invalid role" });
@@ -26,8 +26,8 @@ exports.signup = async (req, res) => {
 
     const newUser =
       role === "employee"
-        ? new Employee({ username, email, password })
-        : new Staff({ username, email, password });
+        ? new Employee({ username, id, email, password })
+        : new Staff({ username, id, email, password });
 
     await newUser.save();
 

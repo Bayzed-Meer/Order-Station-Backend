@@ -3,11 +3,10 @@ const jwt = require("jsonwebtoken");
 const verifyAccessToken = (req, res, next) => {
   const authHeader = req.headers.authorization;
 
-  if (!authHeader || !authHeader.startsWith("Bearer ")) {
+  if (!authHeader || !authHeader.startsWith("Bearer "))
     return res
       .status(401)
       .json({ message: "Access token is missing or invalid" });
-  }
 
   const token = authHeader.split(" ")[1];
 
@@ -24,4 +23,23 @@ const verifyAccessToken = (req, res, next) => {
   });
 };
 
-module.exports = verifyAccessToken;
+const verifyRole = (role) => {
+  return (req, res, next) => {
+    if (req.user && req.user.role === role) next();
+    else
+      res
+        .status(403)
+        .json({ message: `Access forbidden: Requires ${role} role` });
+  };
+};
+
+const verifyAdmin = [verifyAccessToken, verifyRole("admin")];
+const verifyEmployee = [verifyAccessToken, verifyRole("employee")];
+const verifyStaff = [verifyAccessToken, verifyRole("staff")];
+
+module.exports = {
+  verifyAccessToken,
+  verifyAdmin,
+  verifyEmployee,
+  verifyStaff,
+};
