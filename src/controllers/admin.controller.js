@@ -29,3 +29,28 @@ exports.deleteEmployee = async (req, res) => {
     return res.status(500).json({ message: "Internal server error" });
   }
 };
+
+exports.getAllStaffs = async (req, res) => {
+  try {
+    const staffs = await Staff.find({}).select("-password");
+    return res.status(200).json(staffs);
+  } catch (error) {
+    console.error("Error fetching staffs:", error);
+    return res.status(500).json({ message: "Internal server error" });
+  }
+};
+
+exports.deleteStaff = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const deletedStaff = await Staff.findOneAndDelete({ id });
+
+    if (!deletedStaff)
+      return res.status(404).json({ message: "Staff not found" });
+
+    res.json({ message: "Staff deleted successfully" });
+  } catch (error) {
+    console.error("Error deleting staff:", error);
+    return res.status(500).json({ message: "Internal server error" });
+  }
+};

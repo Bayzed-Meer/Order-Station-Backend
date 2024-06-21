@@ -13,5 +13,15 @@ router.delete(
   verifyAdmin,
   adminController.deleteEmployee
 );
+router.get(
+  "/staffs/getAllStaffs",
+  verifyAdmin,
+  adminController.getAllStaffs
+);
+router.delete(
+  "/staffs/deleteStaff/:id",
+  verifyAdmin,
+  adminController.deleteStaff
+);
 
 module.exports = router;
