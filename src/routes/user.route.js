@@ -12,6 +12,14 @@ router.patch(
   userController.updateUserProfile
 );
 
+router.post("/checkIn", verifyAccessToken, userController.dailyCheckIn);
+
+router.get(
+  "/checkIn-status",
+  verifyAccessToken,
+  userController.getCheckInStatus
+);
+
 router.post(
   "/upload/profile-picture",
   verifyAccessToken,

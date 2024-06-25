@@ -34,8 +34,9 @@ const userSchema = new Schema({
     type: String,
     default: "",
   },
-  mealPreferences: {
+  mealPreference: {
     type: String,
+    enum: ["regular", "diet"],
     default: "",
   },
 });
