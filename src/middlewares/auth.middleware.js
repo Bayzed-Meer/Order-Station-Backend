@@ -26,10 +26,7 @@ const verifyAccessToken = (req, res, next) => {
 const verifyRole = (role) => {
   return (req, res, next) => {
     if (req.user && req.user.role === role) next();
-    else
-      res
-        .status(403)
-        .json({ message: `Access forbidden: Requires ${role} role` });
+    else res.status(403).json({ message: "Access forbidden" });
   };
 };
 

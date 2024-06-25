@@ -1,6 +1,7 @@
 const Admin = require("../models/admin.model");
 const Employee = require("../models/employee.model");
 const Staff = require("../models/staff.model");
+const User = require("../models/user.model");
 const bcrypt = require("bcrypt");
 const tokenUtils = require("../utils/token.utils");
 const jwt = require("jsonwebtoken");
@@ -31,7 +32,15 @@ exports.signup = async (req, res) => {
 
     await newUser.save();
 
-    res.status(201).json({ message: "User created successfully" });
+    const newAppUser = new User({
+      username,
+      email,
+      id,
+    });
+
+    await newAppUser.save();
+
+    res.status(201).json({ message: `${role} created successfully` });
   } catch (error) {
     console.error("Error creating user:", error);
     res.status(500).json({ message: "Internal server error" });

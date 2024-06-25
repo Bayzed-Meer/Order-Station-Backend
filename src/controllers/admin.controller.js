@@ -1,9 +1,12 @@
 const Admin = require("../models/admin.model");
 const Employee = require("../models/employee.model");
 const Staff = require("../models/staff.model");
+const User = require("../models/user.model");
 const bcrypt = require("bcrypt");
 const tokenUtils = require("../utils/token.utils");
 const jwt = require("jsonwebtoken");
+const fs = require("fs");
+const path = require("path");
 
 exports.getAllEmployees = async (req, res) => {
   try {
@@ -18,10 +21,26 @@ exports.getAllEmployees = async (req, res) => {
 exports.deleteEmployee = async (req, res) => {
   try {
     const { id } = req.params;
-    const deletedEmployee = await Employee.findOneAndDelete({ id });
+    await Employee.findOneAndDelete({ id });
+
+    const deletedEmployee = await User.findOneAndDelete({ id });
 
     if (!deletedEmployee)
       return res.status(404).json({ message: "Employee not found" });
+
+    const filePath = path.join(
+      __dirname,
+      "..",
+      "..",
+      "uploads",
+      deletedEmployee.profilePicture
+    );
+
+    if (deletedEmployee.profilePicture !== "default-photo.png") {
+      if (deletedEmployee.profilePicture && fs.existsSync(filePath)) {
+        fs.unlinkSync(filePath);
+      }
+    }
 
     res.json({ message: "Employee deleted successfully" });
   } catch (error) {

@@ -7,6 +7,7 @@ const cookieParser = require("cookie-parser");
 
 const authRoute = require("./routes/auth.route");
 const adminRoute = require("./routes/admin.route");
+const userRoute = require("./routes/user.route");
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -21,10 +22,12 @@ app.use(cors(corsOptions));
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(cookieParser());
+app.use("/uploads", express.static("uploads"));
 
 // routes
 app.use("/auth", authRoute);
 app.use("/admin", adminRoute);
+app.use("/user", userRoute);
 
 // connect to MongoDB
 mongoose
