@@ -56,9 +56,11 @@ exports.dailyCheckIn = async (req, res) => {
     const { id } = req.user;
     const { mealPreference, workLocation } = req.body;
 
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    let checkIn = await CheckIn.findOne({ id, date: today });
+    const tomorrow = new Date();
+    tomorrow.setDate(tomorrow.getDate() + 2);
+    tomorrow.setHours(0, 0, 0, 0);
+
+    let checkIn = await CheckIn.findOne({ id, date: tomorrow });
 
     if (checkIn) {
       checkIn.mealPreference = mealPreference;
@@ -68,12 +70,12 @@ exports.dailyCheckIn = async (req, res) => {
     } else {
       checkIn = new CheckIn({
         id,
-        date: today,
+        date: tomorrow,
         mealPreference,
         workLocation,
       });
       await checkIn.save();
-      res.status(201).send({ message: "Check-in created successfully" });
+      res.status(201).send({ message: "Check-in successful" });
     }
   } catch (error) {
     console.error("Error creating/updating check in", error);
@@ -85,9 +87,10 @@ exports.getCheckInStatus = async (req, res) => {
   try {
     const { id } = req.user;
 
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    const checkIn = await CheckIn.findOne({ id, date: today });
+    const tomorrow = new Date();
+    tomorrow.setDate(tomorrow.getDate() + 2);
+    tomorrow.setHours(0, 0, 0, 0);
+    const checkIn = await CheckIn.findOne({ id, date: tomorrow });
 
     res.status(200).send(checkIn);
   } catch (error) {

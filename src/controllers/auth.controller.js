@@ -72,6 +72,7 @@ exports.signin = async (req, res) => {
       httpOnly: true,
       secure: true,
       sameSite: "Strict",
+      expires: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
     });
 
     res.status(200).json({
@@ -145,6 +146,7 @@ exports.refreshToken = (req, res) => {
       httpOnly: true,
       secure: true,
       sameSite: "Strict",
+      expires: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
     });
 
     res.json({ accessToken });

@@ -3,10 +3,10 @@ const mongoose = require("mongoose");
 const checkInSchema = new mongoose.Schema({
   id: { type: String, required: true },
   date: { type: Date, required: true },
-  mealPreference: { type: String, enum: ["regular", "diet"], required: true },
+  mealPreference: { type: String, enum: ["regular", "diet", ""] },
   workLocation: {
     type: String,
-    enum: ["wfh", "mirpur", "mohakhali"],
+    enum: ["wfh", "leave", "mirpur", "mohakhali"],
     required: true,
   },
 });
