@@ -38,14 +38,38 @@ exports.getCurrentOrders = async (req, res) => {
     const { id, role } = req.user;
 
     let query = {};
-    if (role === "employee") {
+    if (role === "employee")
       query = {
         employeeID: id,
         orderStatus: { $in: ["applied", "in progress"] },
       };
-    } else if (role === "staff" || role === "admin") {
+    else if (role === "staff" || role === "admin")
       query = {
         orderStatus: { $in: ["applied", "in progress"] },
+      };
+
+    const orders = await BeverageOrder.find(query).sort({ createdAt: -1 });
+
+    res.status(200).json(orders);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
+
+exports.getOrderHistory = async (req, res) => {
+  try {
+    const { id, role } = req.user;
+
+    let query = {};
+    if (role === "employee") {
+      query = {
+        employeeID: id,
+        orderStatus: { $in: ["completed", "cancelled"] },
+      };
+    } else if (role === "staff" || role === "admin") {
+      query = {
+        orderStatus: { $in: ["completed", "cancelled"] },
       };
     }
 

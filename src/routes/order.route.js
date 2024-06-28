@@ -9,6 +9,11 @@ router.get(
   verifyAccessToken,
   orderController.getCurrentOrders
 );
+router.get(
+  "/get-order-history",
+  verifyAccessToken,
+  orderController.getOrderHistory
+);
 
 router.delete(
   "/delete-order/:id",
