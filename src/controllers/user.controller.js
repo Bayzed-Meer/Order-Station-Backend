@@ -53,25 +53,27 @@ exports.uploadProfilePicture = async (req, res) => {
 
 exports.dailyCheckIn = async (req, res) => {
   try {
-    const { id } = req.user;
-    const { mealPreference, workLocation } = req.body;
+    const employeeID = req.user.id;
+    const { meal, snacks, workLocation } = req.body;
 
     const tomorrow = new Date();
     tomorrow.setDate(tomorrow.getDate() + 2);
     tomorrow.setHours(0, 0, 0, 0);
 
-    let checkIn = await CheckIn.findOne({ id, date: tomorrow });
+    let checkIn = await CheckIn.findOne({ employeeID, date: tomorrow });
 
     if (checkIn) {
-      checkIn.mealPreference = mealPreference;
+      checkIn.meal = meal;
       checkIn.workLocation = workLocation;
+      checkIn.snacks = snacks;
       await checkIn.save();
       res.status(200).send({ message: "Check-in updated successfully" });
     } else {
       checkIn = new CheckIn({
-        id,
+        employeeID,
         date: tomorrow,
-        mealPreference,
+        meal,
+        snacks,
         workLocation,
       });
       await checkIn.save();
@@ -85,12 +87,12 @@ exports.dailyCheckIn = async (req, res) => {
 
 exports.getCheckInStatus = async (req, res) => {
   try {
-    const { id } = req.user;
+    const employeeID = req.user.id;
 
     const tomorrow = new Date();
     tomorrow.setDate(tomorrow.getDate() + 2);
     tomorrow.setHours(0, 0, 0, 0);
-    const checkIn = await CheckIn.findOne({ id, date: tomorrow });
+    const checkIn = await CheckIn.findOne({ employeeID, date: tomorrow });
 
     res.status(200).send(checkIn);
   } catch (error) {

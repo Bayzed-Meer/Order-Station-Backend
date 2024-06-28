@@ -8,6 +8,7 @@ const cookieParser = require("cookie-parser");
 const authRoute = require("./routes/auth.route");
 const adminRoute = require("./routes/admin.route");
 const userRoute = require("./routes/user.route");
+const orderRoute = require("./routes/order.route");
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -28,6 +29,7 @@ app.use("/uploads", express.static("uploads"));
 app.use("/auth", authRoute);
 app.use("/admin", adminRoute);
 app.use("/user", userRoute);
+app.use("/orders", orderRoute);
 
 // connect to MongoDB
 mongoose

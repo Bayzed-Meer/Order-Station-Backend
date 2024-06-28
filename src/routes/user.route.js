@@ -12,19 +12,19 @@ router.patch(
   userController.updateUserProfile
 );
 
+router.post(
+  "/upload/profile-picture",
+  verifyAccessToken,
+  upload,
+  userController.uploadProfilePicture
+);
+
 router.post("/checkIn", verifyAccessToken, userController.dailyCheckIn);
 
 router.get(
   "/checkIn-status",
   verifyAccessToken,
   userController.getCheckInStatus
-);
-
-router.post(
-  "/upload/profile-picture",
-  verifyAccessToken,
-  upload,
-  userController.uploadProfilePicture
 );
 
 module.exports = router;
