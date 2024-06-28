@@ -16,7 +16,7 @@ exports.getUserProfile = async (req, res) => {
 
 exports.updateUserProfile = async (req, res) => {
   try {
-    const { contactNumber, SBU, jobTitle, mealPreference } = req.body;
+    const { contactNumber, SBU, jobTitle, meal } = req.body;
 
     const user = await authenticateUser(req, res, User);
 
@@ -25,7 +25,7 @@ exports.updateUserProfile = async (req, res) => {
     user.contactNumber = contactNumber || user.contactNumber;
     user.SBU = SBU || user.SBU;
     user.jobTitle = jobTitle || user.jobTitle;
-    user.mealPreference = mealPreference || user.mealPreference;
+    user.meal = meal || user.meal;
 
     await user.save();
     res
@@ -67,7 +67,7 @@ exports.dailyCheckIn = async (req, res) => {
       checkIn.workLocation = workLocation;
       checkIn.snacks = snacks;
       await checkIn.save();
-      res.status(200).send({ message: "Check-in updated successfully" });
+      res.status(200).json({ message: "Check-in updated successfully" });
     } else {
       checkIn = new CheckIn({
         employeeID,
@@ -77,11 +77,11 @@ exports.dailyCheckIn = async (req, res) => {
         workLocation,
       });
       await checkIn.save();
-      res.status(201).send({ message: "Check-in successful" });
+      res.status(201).json({ message: "Check-in successful" });
     }
   } catch (error) {
     console.error("Error creating/updating check in", error);
-    res.status(500).send({ message: "Internal server error", error });
+    res.status(500).json({ message: "Internal server error", error });
   }
 };
 
@@ -94,8 +94,8 @@ exports.getCheckInStatus = async (req, res) => {
     tomorrow.setHours(0, 0, 0, 0);
     const checkIn = await CheckIn.findOne({ employeeID, date: tomorrow });
 
-    res.status(200).send(checkIn);
+    res.status(200).json(checkIn);
   } catch (error) {
-    res.status(500).send({ message: "Internal server error", error });
+    res.status(500).json({ message: "Internal server error", error });
   }
 };

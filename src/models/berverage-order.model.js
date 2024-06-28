@@ -3,16 +3,16 @@ const Schema = mongoose.Schema;
 
 const BeverageOrderSchema = new Schema({
   employeeID: { type: String, required: true },
+  username: { type: String, required: true },
   teaQuantity: { type: Number, required: true },
-  teaAmount: { type: String, enum: ["half", "full"], required: true },
+  teaAmount: { type: String, required: true },
   coffeeQuantity: { type: Number, required: true },
-  coffeeAmount: { type: String, enum: ["half", "full"], required: true },
+  coffeeAmount: { type: String, required: true },
   notes: { type: String, default: "" },
   roomNumber: { type: Number, required: true },
   createdAt: { type: Date, default: Date.now },
   orderStatus: {
     type: String,
-    enum: ["applied", "in progress", "completed", "cancelled"],
     default: "applied",
   },
 });

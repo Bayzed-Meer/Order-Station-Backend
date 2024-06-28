@@ -149,6 +149,6 @@ exports.refreshToken = (req, res) => {
       expires: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
     });
 
-    res.json({ accessToken });
+    res.status(200).json({ accessToken });
   });
 };
