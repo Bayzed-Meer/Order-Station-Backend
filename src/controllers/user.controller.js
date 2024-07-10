@@ -56,11 +56,15 @@ exports.dailyCheckIn = async (req, res) => {
     const employeeID = req.user.id;
     const { meal, snacks, workLocation } = req.body;
 
-    const tomorrow = new Date();
-    tomorrow.setDate(tomorrow.getDate() + 2);
-    tomorrow.setHours(0, 0, 0, 0);
+    const now = new Date();
+    const tomorrow = new Date(
+      Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() + 1)
+    );
 
-    let checkIn = await CheckIn.findOne({ employeeID, date: tomorrow });
+    let checkIn = await CheckIn.findOne({
+      employeeID,
+      date: tomorrow.getTime(),
+    });
 
     if (checkIn) {
       checkIn.meal = meal;
@@ -71,7 +75,7 @@ exports.dailyCheckIn = async (req, res) => {
     } else {
       checkIn = new CheckIn({
         employeeID,
-        date: tomorrow,
+        date: tomorrow.getTime(),
         meal,
         snacks,
         workLocation,
@@ -89,13 +93,19 @@ exports.getCheckInStatus = async (req, res) => {
   try {
     const employeeID = req.user.id;
 
-    const tomorrow = new Date();
-    tomorrow.setDate(tomorrow.getDate() + 2);
-    tomorrow.setHours(0, 0, 0, 0);
-    const checkIn = await CheckIn.findOne({ employeeID, date: tomorrow });
+    const now = new Date();
+    const tomorrow = new Date(
+      Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() + 1)
+    );
+
+    const checkIn = await CheckIn.findOne({
+      employeeID,
+      date: tomorrow.getTime(),
+    });
 
     res.status(200).json(checkIn);
   } catch (error) {
+    console.error("Error fetching check-in status", error);
     res.status(500).json({ message: "Internal server error", error });
   }
 };

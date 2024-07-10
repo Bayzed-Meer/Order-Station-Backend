@@ -6,7 +6,8 @@ const validator = require("validator");
 const adminSchema = new Schema({
   username: {
     type: String,
-    required: true,
+    unique: true,
+    default: "",
   },
   email: {
     type: String,
