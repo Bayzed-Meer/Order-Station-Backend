@@ -16,7 +16,11 @@ const app = express();
 const server = http.createServer(app);
 const io = new Server(server, {
   cors: {
-    origin: ["http://localhost:4200", "https://order-station.netlify.app"],
+    origin: [
+      "http://localhost:4200",
+      "https://order-station.netlify.app",
+      "https://bayzed-meer.github.io",
+    ],
     credentials: true,
   },
 });
@@ -26,7 +30,11 @@ const PORT = process.env.PORT || 3000;
 //middlewares
 const corsOptions = {
   credentials: true,
-  origin: ["http://localhost:4200", "https://order-station.netlify.app"],
+  origin: [
+    "http://localhost:4200",
+    "https://order-station.netlify.app",
+    "https://bayzed-meer.github.io",
+  ],
 };
 
 app.use(cors(corsOptions));
