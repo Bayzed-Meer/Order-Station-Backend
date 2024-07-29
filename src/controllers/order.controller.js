@@ -11,6 +11,8 @@ exports.createOrder = async (req, res) => {
       roomNumber,
     } = req.body;
 
+    console.log(coffeeAmount);
+
     const employeeID = req.user.id;
     const { username } = req.user;
 
@@ -26,6 +28,9 @@ exports.createOrder = async (req, res) => {
     });
 
     await newOrder.save();
+
+    global.io.emit("orderUpdated");
+
     res.status(201).json({ message: "Order successful" });
   } catch (error) {
     console.error(error);
@@ -91,6 +96,8 @@ exports.deleteOrder = async (req, res) => {
     if (!deletedOrder)
       return res.status(404).json({ message: "Order not found" });
 
+    global.io.emit("orderUpdated");
+
     res.status(200).json({ message: "Order deleted successfully" });
   } catch (error) {
     console.error("Error deleting order:", error);
@@ -114,6 +121,8 @@ exports.cancelOrder = async (req, res) => {
 
     if (!updatedOrder)
       return res.status(404).json({ message: "Order not found" });
+
+    global.io.emit("orderUpdated");
 
     return res.status(200).json({ message: "Order cancelled successfully" });
   } catch (error) {
@@ -139,6 +148,8 @@ exports.approveOrder = async (req, res) => {
     if (!updatedOrder)
       return res.status(404).json({ message: "Order not found" });
 
+    global.io.emit("orderUpdated");
+
     return res.status(200).json({ message: "Order approved successfully" });
   } catch (error) {
     console.error("Error approving order:", error);
@@ -162,6 +173,8 @@ exports.completeOrder = async (req, res) => {
 
     if (!updatedOrder)
       return res.status(404).json({ message: "Order not found" });
+
+    global.io.emit("orderUpdated");
 
     return res.status(200).json({ message: "Order completed successfully" });
   } catch (error) {

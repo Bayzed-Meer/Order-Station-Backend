@@ -4,6 +4,8 @@ const cors = require("cors");
 const bodyParser = require("body-parser");
 const mongoose = require("mongoose");
 const cookieParser = require("cookie-parser");
+const http = require("http");
+const { Server } = require("socket.io");
 
 const authRoute = require("./routes/auth.route");
 const adminRoute = require("./routes/admin.route");
@@ -11,6 +13,14 @@ const userRoute = require("./routes/user.route");
 const orderRoute = require("./routes/order.route");
 
 const app = express();
+const server = http.createServer(app);
+const io = new Server(server, {
+  cors: {
+    origin: "http://localhost:4200",
+    credentials: true,
+  },
+});
+global.io = io;
 const PORT = process.env.PORT || 3000;
 
 //middlewares
@@ -37,4 +47,4 @@ mongoose
   .then(() => console.log("Connected to Database"))
   .catch((err) => console.error("Error connecting to database:", err));
 
-app.listen(PORT, () => console.log(`Server is running on port ${PORT}`));
+server.listen(PORT, () => console.log(`Server is running on port ${PORT}`));

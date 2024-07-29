@@ -8,8 +8,13 @@ const path = require("path");
 
 exports.getAllEmployees = async (req, res) => {
   try {
-    const employees = await Employee.find({}).select("-password");
-    return res.status(200).json(employees);
+    const employees = await Employee.find({}, { id: 1 });
+
+    const employeeIds = employees.map((emp) => emp.id);
+
+    const users = await User.find({ id: { $in: employeeIds } });
+
+    return res.status(200).json(users);
   } catch (error) {
     console.error("Error fetching employees:", error);
     return res.status(500).json({ message: "Internal server error" });
@@ -49,8 +54,13 @@ exports.deleteEmployee = async (req, res) => {
 
 exports.getAllStaffs = async (req, res) => {
   try {
-    const staffs = await Staff.find({}).select("-password");
-    return res.status(200).json(staffs);
+    const staffs = await Staff.find({}, { id: 1 });
+
+    const staffIds = staffs.map((emp) => emp.id);
+
+    const users = await User.find({ id: { $in: staffIds } });
+
+    return res.status(200).json(users);
   } catch (error) {
     console.error("Error fetching staffs:", error);
     return res.status(500).json({ message: "Internal server error" });
@@ -75,13 +85,21 @@ exports.deleteStaff = async (req, res) => {
 exports.mealSummary = async (req, res) => {
   try {
     const now = new Date();
+    const pastWeek = [];
 
-    const today = new Date(
-      Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate())
-    );
+    for (let i = 0; i < 7; i++) {
+      const day = new Date(
+        Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() - i)
+      );
+      pastWeek.push(day);
+    }
 
-    const yesterday = new Date(
-      Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() - 1)
+    const checkInsByDay = await Promise.all(
+      pastWeek.map((day) =>
+        CheckIn.find({
+          date: day.getTime(),
+        })
+      )
     );
 
     const countMeals = (checkIns, mealType, location) => {
@@ -91,62 +109,16 @@ exports.mealSummary = async (req, res) => {
       ).length;
     };
 
-    const todayCheckIns = await CheckIn.find({
-      date: today.getTime(),
+    const mealSummaryData = pastWeek.map((day, index) => {
+      const checkIns = checkInsByDay[index];
+      return {
+        date: day.toISOString().split("T")[0],
+        mirpurDietCount: countMeals(checkIns, "diet", "mirpur"),
+        mirpurRegularCount: countMeals(checkIns, "regular", "mirpur"),
+        mohakhaliDietCount: countMeals(checkIns, "diet", "mohakhali"),
+        mohakhaliRegularCount: countMeals(checkIns, "regular", "mohakhali"),
+      };
     });
-
-    const yesterdayCheckIns = await CheckIn.find({
-      date: yesterday.getTime(),
-    });
-
-    const todayMirpurDietCount = countMeals(todayCheckIns, "diet", "mirpur");
-    const yesterdayMirpurDietCount = countMeals(
-      yesterdayCheckIns,
-      "diet",
-      "mirpur"
-    );
-    const todayMirpurRegularCount = countMeals(
-      todayCheckIns,
-      "regular",
-      "mirpur"
-    );
-    const yesterdayMirpurRegularCount = countMeals(
-      yesterdayCheckIns,
-      "regular",
-      "mirpur"
-    );
-
-    const todayMohakhaliDietCount = countMeals(
-      todayCheckIns,
-      "diet",
-      "mohakhali"
-    );
-    const yesterdayMohakhaliDietCount = countMeals(
-      yesterdayCheckIns,
-      "diet",
-      "mohakhali"
-    );
-    const todayMohakhaliRegularCount = countMeals(
-      todayCheckIns,
-      "regular",
-      "mohakhali"
-    );
-    const yesterdayMohakhaliRegularCount = countMeals(
-      yesterdayCheckIns,
-      "regular",
-      "mohakhali"
-    );
-
-    const mealSummaryData = {
-      todayMirpurDietCount,
-      yesterdayMirpurDietCount,
-      todayMirpurRegularCount,
-      yesterdayMirpurRegularCount,
-      todayMohakhaliDietCount,
-      yesterdayMohakhaliDietCount,
-      todayMohakhaliRegularCount,
-      yesterdayMohakhaliRegularCount,
-    };
 
     res.status(200).json(mealSummaryData);
   } catch (error) {
@@ -158,71 +130,56 @@ exports.mealSummary = async (req, res) => {
 exports.getBeverageSummary = async (req, res) => {
   try {
     const now = new Date();
+    const pastWeek = [];
 
-    const startOfToday = new Date(
-      Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate())
-    );
-    const endOfToday = new Date(
-      Date.UTC(
-        now.getUTCFullYear(),
-        now.getUTCMonth(),
-        now.getUTCDate(),
-        23,
-        59,
-        59,
-        999
+    for (let i = 0; i < 7; i++) {
+      const day = new Date(
+        Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() - i)
+      );
+      pastWeek.push(day);
+    }
+
+    const getStartAndEndOfDay = (day) => {
+      const startOfDay = new Date(
+        Date.UTC(day.getUTCFullYear(), day.getUTCMonth(), day.getUTCDate())
+      );
+      const endOfDay = new Date(
+        Date.UTC(
+          day.getUTCFullYear(),
+          day.getUTCMonth(),
+          day.getUTCDate(),
+          23,
+          59,
+          59,
+          999
+        )
+      );
+      return { startOfDay, endOfDay };
+    };
+
+    const ordersByDay = await Promise.all(
+      pastWeek.map(({ startOfDay, endOfDay }) =>
+        BeverageOrder.find({
+          createdAt: { $gte: startOfDay, $lt: endOfDay },
+        })
       )
     );
-
-    const yesterday = new Date();
-    yesterday.setUTCDate(now.getUTCDate() - 1);
-    const startOfYesterday = new Date(
-      Date.UTC(
-        yesterday.getUTCFullYear(),
-        yesterday.getUTCMonth(),
-        yesterday.getUTCDate()
-      )
-    );
-    const endOfYesterday = new Date(
-      Date.UTC(
-        yesterday.getUTCFullYear(),
-        yesterday.getUTCMonth(),
-        yesterday.getUTCDate(),
-        23,
-        59,
-        59,
-        999
-      )
-    );
-
-    const todayOrders = await BeverageOrder.find({
-      createdAt: { $gte: startOfToday, $lt: endOfToday },
-    });
-
-    const yesterdayOrders = await BeverageOrder.find({
-      createdAt: { $gte: startOfYesterday, $lt: endOfYesterday },
-    });
 
     const countOrdersByStatus = (orders, status) => {
       return orders.filter((order) => order.orderStatus === status).length;
     };
 
-    const beverageOrderSummary = {
-      todayCompletedOrders: countOrdersByStatus(todayOrders, "completed"),
-      todayInProgressOrders: countOrdersByStatus(todayOrders, "in progress"),
-      todayAppliedOrders: countOrdersByStatus(todayOrders, "applied"),
-      todayCancelledOrders: countOrdersByStatus(todayOrders, "cancelled"),
-      yesterdayCompletedOrders: countOrdersByStatus(
-        yesterdayOrders,
-        "completed"
-      ),
-      yesterdayCancelledOrders: countOrdersByStatus(
-        yesterdayOrders,
-        "cancelled"
-      ),
-    };
+    const beverageSummaryData = pastWeek.map((day, index) => {
+      const { startOfDay, endOfDay } = getStartAndEndOfDay(day);
+      const orders = ordersByDay[index];
+      return {
+        date: day.toISOString().split("T")[0],
+        completedOrders: countOrdersByStatus(orders, "completed"),
+        cancelledOrders: countOrdersByStatus(orders, "cancelled"),
+      };
+    });
 
-    res.status(200).json(beverageOrderSummary);
+    res.status(200).json(beverageSummaryData);
   } catch (error) {
     console.error("Error getting beverage order summary:", error);
     res.status(500).json({ message: "Internal server error" });
