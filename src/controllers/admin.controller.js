@@ -158,11 +158,13 @@ exports.getBeverageSummary = async (req, res) => {
     };
 
     const ordersByDay = await Promise.all(
-      pastWeek.map(({ startOfDay, endOfDay }) =>
-        BeverageOrder.find({
+      pastWeek.map(async (day) => {
+        const { startOfDay, endOfDay } = getStartAndEndOfDay(day);
+        const orders = await BeverageOrder.find({
           createdAt: { $gte: startOfDay, $lt: endOfDay },
-        })
-      )
+        });
+        return orders;
+      })
     );
 
     const countOrdersByStatus = (orders, status) => {
@@ -170,7 +172,6 @@ exports.getBeverageSummary = async (req, res) => {
     };
 
     const beverageSummaryData = pastWeek.map((day, index) => {
-      const { startOfDay, endOfDay } = getStartAndEndOfDay(day);
       const orders = ordersByDay[index];
       return {
         date: day.toISOString().split("T")[0],
