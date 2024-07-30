@@ -84,20 +84,38 @@ exports.deleteStaff = async (req, res) => {
 
 exports.mealSummary = async (req, res) => {
   try {
-    const now = new Date();
-    const pastWeek = [];
+    const { startDate, endDate } = req.query;
+    let start, end;
 
-    for (let i = 0; i < 7; i++) {
-      const day = new Date(
-        Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() - i)
-      );
-      pastWeek.push(day);
+    if (startDate && endDate) {
+      start = new Date(startDate);
+      end = new Date(endDate);
+
+      if (start > end) {
+        return res
+          .status(400)
+          .json({ message: "Start date must be before end date" });
+      }
     }
 
+    const requestedDays = [];
+    for (
+      let day = new Date(start);
+      day <= end;
+      day.setDate(day.getDate() + 1)
+    ) {
+      requestedDays.push(new Date(day));
+    }
+
+    requestedDays.reverse();
+
     const checkInsByDay = await Promise.all(
-      pastWeek.map((day) =>
+      requestedDays.map((day) =>
         CheckIn.find({
-          date: day.getTime(),
+          date: {
+            $gte: new Date(day.setUTCHours(0, 0, 0, 0)),
+            $lt: new Date(day.setUTCHours(23, 59, 59, 999)),
+          },
         })
       )
     );
@@ -109,8 +127,9 @@ exports.mealSummary = async (req, res) => {
       ).length;
     };
 
-    const mealSummaryData = pastWeek.map((day, index) => {
+    const mealSummaryData = requestedDays.map((day, index) => {
       const checkIns = checkInsByDay[index];
+
       return {
         date: day.toISOString().split("T")[0],
         mirpurDietCount: countMeals(checkIns, "diet", "mirpur"),
@@ -119,7 +138,6 @@ exports.mealSummary = async (req, res) => {
         mohakhaliRegularCount: countMeals(checkIns, "regular", "mohakhali"),
       };
     });
-
     res.status(200).json(mealSummaryData);
   } catch (error) {
     console.error("Error getting meal summary:", error);
@@ -129,39 +147,38 @@ exports.mealSummary = async (req, res) => {
 
 exports.getBeverageSummary = async (req, res) => {
   try {
-    const now = new Date();
-    const pastWeek = [];
+    const { startDate, endDate } = req.query;
+    let start, end;
 
-    for (let i = 0; i < 7; i++) {
-      const day = new Date(
-        Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() - i)
-      );
-      pastWeek.push(day);
+    if (startDate && endDate) {
+      start = new Date(startDate);
+      end = new Date(endDate);
+
+      if (start > end) {
+        return res
+          .status(400)
+          .json({ message: "Start date must be before end date" });
+      }
     }
 
-    const getStartAndEndOfDay = (day) => {
-      const startOfDay = new Date(
-        Date.UTC(day.getUTCFullYear(), day.getUTCMonth(), day.getUTCDate())
-      );
-      const endOfDay = new Date(
-        Date.UTC(
-          day.getUTCFullYear(),
-          day.getUTCMonth(),
-          day.getUTCDate(),
-          23,
-          59,
-          59,
-          999
-        )
-      );
-      return { startOfDay, endOfDay };
-    };
+    const requestedDays = [];
+    for (
+      let day = new Date(start);
+      day <= end;
+      day.setDate(day.getDate() + 1)
+    ) {
+      requestedDays.push(new Date(day));
+    }
+
+    requestedDays.reverse();
 
     const ordersByDay = await Promise.all(
-      pastWeek.map(async (day) => {
-        const { startOfDay, endOfDay } = getStartAndEndOfDay(day);
+      requestedDays.map(async (day) => {
         const orders = await BeverageOrder.find({
-          createdAt: { $gte: startOfDay, $lt: endOfDay },
+          createdAt: {
+            $gte: new Date(day.setUTCHours(0, 0, 0, 0)),
+            $lt: new Date(day.setUTCHours(23, 59, 59, 999)),
+          },
         });
         return orders;
       })
@@ -171,7 +188,7 @@ exports.getBeverageSummary = async (req, res) => {
       return orders.filter((order) => order.orderStatus === status).length;
     };
 
-    const beverageSummaryData = pastWeek.map((day, index) => {
+    const beverageSummaryData = requestedDays.map((day, index) => {
       const orders = ordersByDay[index];
       return {
         date: day.toISOString().split("T")[0],
