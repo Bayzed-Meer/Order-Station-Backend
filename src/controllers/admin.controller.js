@@ -91,6 +91,9 @@ exports.mealSummary = async (req, res) => {
       start = new Date(startDate);
       end = new Date(endDate);
 
+      start.setHours(start.getHours() + 6);
+      end.setHours(end.getHours() + 6);
+
       if (start > end) {
         return res
           .status(400)
@@ -113,8 +116,8 @@ exports.mealSummary = async (req, res) => {
       requestedDays.map((day) =>
         CheckIn.find({
           date: {
-            $gte: new Date(day.setUTCHours(0, 0, 0, 0)),
-            $lt: new Date(day.setUTCHours(23, 59, 59, 999)),
+            $gte: new Date(day.setHours(0, 0, 0, 0)),
+            $lt: new Date(day.setHours(23, 59, 59, 999)),
           },
         })
       )
@@ -154,6 +157,9 @@ exports.getBeverageSummary = async (req, res) => {
       start = new Date(startDate);
       end = new Date(endDate);
 
+      start.setHours(start.getHours() + 6);
+      end.setHours(end.getHours() + 6);
+
       if (start > end) {
         return res
           .status(400)
@@ -176,8 +182,8 @@ exports.getBeverageSummary = async (req, res) => {
       requestedDays.map(async (day) => {
         const orders = await BeverageOrder.find({
           createdAt: {
-            $gte: new Date(day.setUTCHours(0, 0, 0, 0)),
-            $lt: new Date(day.setUTCHours(23, 59, 59, 999)),
+            $gte: new Date(day.setHours(0, 0, 0, 0)),
+            $lt: new Date(day.setHours(23, 59, 59, 999)),
           },
         });
         return orders;

@@ -10,7 +10,7 @@ const BeverageOrderSchema = new Schema({
   coffeeAmount: { type: String },
   notes: { type: String, default: "" },
   roomNumber: { type: Number, required: true },
-  createdAt: { type: Date, default: Date.now },
+  createdAt: { type: Date, required: true },
   orderStatus: {
     type: String,
     default: "applied",

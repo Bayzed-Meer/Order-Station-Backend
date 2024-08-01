@@ -11,10 +11,11 @@ exports.createOrder = async (req, res) => {
       roomNumber,
     } = req.body;
 
-    console.log(coffeeAmount);
-
     const employeeID = req.user.id;
     const { username } = req.user;
+    const createdAt = new Date();
+
+    createdAt.setHours(createdAt.getHours() + 6);
 
     const newOrder = new BeverageOrder({
       employeeID,
@@ -25,6 +26,7 @@ exports.createOrder = async (req, res) => {
       coffeeAmount,
       notes,
       roomNumber,
+      createdAt,
     });
 
     await newOrder.save();

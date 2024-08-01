@@ -57,13 +57,16 @@ exports.dailyCheckIn = async (req, res) => {
     const { meal, snacks, workLocation } = req.body;
 
     const now = new Date();
-    const tomorrow = new Date(
-      Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() + 1)
-    );
+    now.setHours(now.getHours() + 6);
+
+    let tomorrow = now;
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    tomorrow = tomorrow.toISOString().split("T")[0];
+    tomorrow = new Date(tomorrow);
 
     let checkIn = await CheckIn.findOne({
       employeeID,
-      date: tomorrow.getTime(),
+      date: tomorrow,
     });
 
     if (checkIn) {
@@ -75,7 +78,7 @@ exports.dailyCheckIn = async (req, res) => {
     } else {
       checkIn = new CheckIn({
         employeeID,
-        date: tomorrow.getTime(),
+        date: tomorrow,
         meal,
         snacks,
         workLocation,
@@ -94,13 +97,16 @@ exports.getCheckInStatus = async (req, res) => {
     const employeeID = req.user.id;
 
     const now = new Date();
-    const tomorrow = new Date(
-      Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() + 1)
-    );
+    now.setHours(now.getHours() + 6);
+
+    let tomorrow = now;
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    tomorrow = tomorrow.toISOString().split("T")[0];
+    tomorrow = new Date(tomorrow);
 
     const checkIn = await CheckIn.findOne({
       employeeID,
-      date: tomorrow.getTime(),
+      date: tomorrow,
     });
 
     res.status(200).json(checkIn);
