@@ -34,9 +34,8 @@ const userSchema = new Schema({
     type: String,
     default: "",
   },
-  meal: {
+  clientInfo: {
     type: String,
-    enum: ["regular", "diet", ""],
     default: "",
   },
 });

@@ -16,7 +16,7 @@ exports.getUserProfile = async (req, res) => {
 
 exports.updateUserProfile = async (req, res) => {
   try {
-    const { contactNumber, SBU, jobTitle, meal } = req.body;
+    const { contactNumber, SBU, jobTitle, clientInfo } = req.body;
 
     const user = await authenticateUser(req, res, User);
 
@@ -25,7 +25,7 @@ exports.updateUserProfile = async (req, res) => {
     user.contactNumber = contactNumber || user.contactNumber;
     user.SBU = SBU || user.SBU;
     user.jobTitle = jobTitle || user.jobTitle;
-    user.meal = meal || user.meal;
+    user.clientInfo = clientInfo || user.clientInfo;
 
     await user.save();
     res

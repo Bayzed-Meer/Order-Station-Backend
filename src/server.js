@@ -5,7 +5,9 @@ const bodyParser = require("body-parser");
 const mongoose = require("mongoose");
 const cookieParser = require("cookie-parser");
 const http = require("http");
+const cron = require("node-cron");
 const { Server } = require("socket.io");
+const { sendReminderEmails } = require("./controllers/remeinder.controller");
 
 const authRoute = require("./routes/auth.route");
 const adminRoute = require("./routes/admin.route");
@@ -48,6 +50,18 @@ app.use("/auth", authRoute);
 app.use("/admin", adminRoute);
 app.use("/user", userRoute);
 app.use("/orders", orderRoute);
+
+// cron job for sending emails for missing check-ins
+cron.schedule(
+  "0 22 * * *",
+  async () => {
+    await sendReminderEmails();
+  },
+  {
+    scheduled: true,
+    timezone: "Asia/Dhaka",
+  }
+);
 
 // connect to MongoDB
 mongoose
