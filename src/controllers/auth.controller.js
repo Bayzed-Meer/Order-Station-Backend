@@ -5,6 +5,15 @@ const User = require("../models/user.model");
 const bcrypt = require("bcrypt");
 const tokenUtils = require("../utils/token.utils");
 const jwt = require("jsonwebtoken");
+const nodemailer = require("nodemailer");
+
+const transporter = nodemailer.createTransport({
+  service: "gmail",
+  auth: {
+    user: process.env.EMAIL_USER,
+    pass: process.env.EMAIL_PASS,
+  },
+});
 
 exports.signup = async (req, res) => {
   try {
@@ -95,7 +104,7 @@ exports.signout = (req, res) => {
   res.status(200).json({ message: "User signed out successfully" });
 };
 
-exports.resetPassword = async (req, res) => {
+exports.changePassword = async (req, res) => {
   try {
     const { email, currentPassword, newPassword } = req.body;
 
@@ -125,7 +134,103 @@ exports.resetPassword = async (req, res) => {
 
     return res.status(200).json({ message: "Password updated successfully" });
   } catch (error) {
+    console.error("Error changing password:", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
+
+exports.resetPassword = async (req, res) => {
+  try {
+    const { email, password, token } = req.body;
+
+    if (!token) return res.status(400).json({ message: "Token is required" });
+
+    let decodedToken;
+    try {
+      decodedToken = await new Promise((resolve, reject) => {
+        jwt.verify(token, process.env.JWT_SECRET_KEY, (err, decoded) => {
+          if (err) return reject(err);
+          resolve(decoded);
+        });
+      });
+    } catch (err) {
+      if (err instanceof jwt.TokenExpiredError) {
+        return res
+          .status(401)
+          .json({ message: "Token has expired. Please request again!" });
+      }
+      return res.status(403).json({ message: "Invalid access token" });
+    }
+
+    const [existingAdmin, existingEmployee, existingStaff] = await Promise.all([
+      Admin.findOne({ email }),
+      Employee.findOne({ email }),
+      Staff.findOne({ email }),
+    ]);
+
+    const user = existingAdmin || existingEmployee || existingStaff;
+
+    if (!user) return res.status(400).json({ message: "User doesn't exist" });
+
+    user.password = password;
+    await user.save();
+
+    return res.status(200).json({ message: "Password reset successful" });
+  } catch (error) {
     console.error("Error resetting password:", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
+
+exports.forgotPassword = async (req, res) => {
+  try {
+    const { email } = req.body;
+
+    const [existingAdmin, existingEmployee, existingStaff] = await Promise.all([
+      Admin.findOne({ email }),
+      Employee.findOne({ email }),
+      Staff.findOne({ email }),
+    ]);
+
+    const user = existingAdmin || existingEmployee || existingStaff;
+
+    if (!user) return res.status(400).json({ message: "User doesn't exist" });
+
+    const resetToken = jwt.sign(
+      { email: user.email, id: user._id },
+      process.env.JWT_SECRET_KEY,
+      { expiresIn: "5m" }
+    );
+
+    const resetLink = `${process.env.FRONTEND_URL}/reset-password?token=${resetToken}`;
+
+    await transporter.sendMail({
+      from: process.env.EMAIL_USER,
+      to: email,
+      subject: "🔒 Password Reset Request",
+      text: `
+Hi there,
+    
+We received a request to reset your password. You can reset your password by clicking the link below:
+    
+${resetLink}
+    
+⏳ This link will expire in 5 minutes. 
+    
+If you did not request a password reset, no action is needed. Your account remains secure. 😊
+    
+Thank you,
+The Order Station Team
+
+📧 For any query, contact us at support@example.com.
+      `,
+    });
+
+    return res.status(200).json({
+      message: `A password reset link has been sent to your email (${user.email}) address`,
+    });
+  } catch (error) {
+    console.error("Error sending password reset link:", error);
     res.status(500).json({ message: "Internal server error" });
   }
 };

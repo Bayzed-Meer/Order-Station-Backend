@@ -4,9 +4,9 @@ const Schema = mongoose.Schema;
 const BeverageOrderSchema = new Schema({
   employeeID: { type: String, required: true },
   username: { type: String, required: true },
-  teaQuantity: { type: Number, required: true },
+  teaQuantity: { type: Number },
   teaAmount: { type: String },
-  coffeeQuantity: { type: Number, required: true },
+  coffeeQuantity: { type: Number },
   coffeeAmount: { type: String },
   notes: { type: String, default: "" },
   roomNumber: { type: Number, required: true },
