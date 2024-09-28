@@ -60,6 +60,8 @@ exports.signin = async (req, res) => {
   try {
     const { email, password } = req.body;
 
+    console.log(email, password);
+
     const [employee, staff, admin] = await Promise.all([
       Employee.findOne({ email }),
       Staff.findOne({ email }),
